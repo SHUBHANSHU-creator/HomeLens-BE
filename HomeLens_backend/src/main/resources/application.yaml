@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: HomeLens_backend
+  profiles:
+    active: dev

@@ -1,5 +1,6 @@
 package com.HomeLens_backend.api.service;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -10,6 +11,7 @@ import java.time.Instant;
 import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class OtpService {
 
     private static final Duration OTP_TTL = Duration.ofMinutes(5);
@@ -20,9 +22,7 @@ public class OtpService {
     private final Random random = new Random();
     private final StringRedisTemplate redisTemplate;
 
-    public OtpService(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+
 
     public String sendOtp(String mobileNumber) {
         String otp = generateOtp();

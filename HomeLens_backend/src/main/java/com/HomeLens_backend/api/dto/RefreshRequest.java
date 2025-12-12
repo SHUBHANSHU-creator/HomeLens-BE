@@ -1,11 +1,9 @@
 package com.HomeLens_backend.api.dto;
 
-
 import lombok.Data;
 
 @Data
-public class VerifyOtpRequest {
-    private String mobileNumber;
-    private String otp;
+public class RefreshRequest {
+    private String refreshToken;
     private String deviceId;
 }

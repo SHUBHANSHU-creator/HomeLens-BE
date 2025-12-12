@@ -9,7 +9,8 @@ import java.time.Instant;
 @AllArgsConstructor
 public class AuthResponse {
 
-    private String token;
-    private Instant expiresAt;
-//    private String tokenType = "Bearer";
+    private String accessToken;
+    private Instant accessTokenExpiresAt;
+    private String refreshToken;
+    private Instant refreshTokenExpiresAt;
 }

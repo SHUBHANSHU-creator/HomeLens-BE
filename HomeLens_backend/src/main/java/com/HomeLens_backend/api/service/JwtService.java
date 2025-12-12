@@ -11,6 +11,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Map;
 
 @Service
 public class JwtService {
@@ -23,18 +24,16 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
     }
 
-    public TokenDetails generateToken(String mobileNumber) {
-        Instant issuedAt = Instant.now();
-        Instant expiresAt = issuedAt.plus(jwtProperties.getExpirationMinutes(), ChronoUnit.MINUTES);
+    public TokenDetails generateAccessToken(String mobileNumber) {
+        return generateToken(mobileNumber, jwtProperties.getAccessTokenExpirationMinutes(), Map.of());
+    }
 
-        String token = Jwts.builder()
-                .setSubject(mobileNumber)
-                .setIssuedAt(Date.from(issuedAt))
-                .setExpiration(Date.from(expiresAt))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
-                .compact();
-
-        return new TokenDetails(token, expiresAt);
+    public TokenDetails generateRefreshToken(String mobileNumber, String deviceId) {
+        return generateToken(
+                mobileNumber,
+                jwtProperties.getRefreshTokenExpirationMinutes(),
+                Map.of("deviceId", deviceId)
+        );
     }
 
     public boolean isTokenValid(String token) {
@@ -48,6 +47,26 @@ public class JwtService {
 
     public String extractMobileNumber(String token) {
         return parseClaims(token).getSubject();
+    }
+
+    public String extractDeviceId(String token) {
+        Object deviceId = parseClaims(token).get("deviceId");
+        return deviceId != null ? deviceId.toString() : null;
+    }
+
+    private TokenDetails generateToken(String mobileNumber, long expirationMinutes, Map<String, Object> claims) {
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plus(expirationMinutes, ChronoUnit.MINUTES);
+
+        String token = Jwts.builder()
+                .setSubject(mobileNumber)
+                .addClaims(claims)
+                .setIssuedAt(Date.from(issuedAt))
+                .setExpiration(Date.from(expiresAt))
+                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .compact();
+
+        return new TokenDetails(token, expiresAt);
     }
 
     private Claims parseClaims(String token) {

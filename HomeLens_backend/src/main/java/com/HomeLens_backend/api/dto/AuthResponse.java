@@ -13,4 +13,5 @@ public class AuthResponse {
     private Instant accessTokenExpiresAt;
     private String refreshToken;
     private Instant refreshTokenExpiresAt;
+    private boolean isSignedIn;
 }

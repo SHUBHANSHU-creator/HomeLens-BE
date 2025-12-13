@@ -9,10 +9,3 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       timeout: 1s
-
-security:
-  jwt:
-    # Replace with a secure, private key in production environments.
-    secret-key: "home-lens-demo-secret-key-change-me-please"
-    access-token-expiration-minutes: 15
-    refresh-token-expiration-minutes: 43200

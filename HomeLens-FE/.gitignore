@@ -1,0 +1,7 @@
+# Frontend
+HomeLens-FE/node_modules/
+HomeLens-FE/dist/
+HomeLens-FE/.env
+HomeLens-FE/.env.*
+HomeLens-FE/.DS_Store
+

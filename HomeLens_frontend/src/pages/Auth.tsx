@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ type Step = 'phone' | 'otp' | 'profile';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { login, verifyOtp, completeProfile, isLoading } = useAuth();
+  const { login, verifyOtp, completeProfile, isLoading, pendingPhone, otpSent } = useAuth();
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -29,14 +29,25 @@ const Auth = () => {
     email: '',
   });
 
+  useEffect(() => {
+    if (otpSent && pendingPhone) {
+      setPhone(pendingPhone);
+      setStep('otp');
+    }
+  }, [otpSent, pendingPhone]);
+
   const handlePhoneSubmit = async () => {
     if (phone.length !== 10) {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
-    await login(phone);
-    toast.success('OTP sent to your mobile number');
-    setStep('otp');
+    try {
+      await login(phone);
+      toast.success('OTP sent to your mobile number');
+      setStep('otp');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send OTP');
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -60,13 +71,17 @@ const Auth = () => {
       return;
     }
 
-    const result = await verifyOtp(otpString);
-    
-    if (result.isNewUser) {
-      setStep('profile');
-    } else {
-      toast.success('Welcome back!');
-      navigate('/');
+    try {
+      const result = await verifyOtp(otpString);
+      
+      if (result.isNewUser) {
+        setStep('profile');
+      } else {
+        toast.success('Welcome back!');
+        navigate('/');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to verify OTP');
     }
   };
 
@@ -76,15 +91,29 @@ const Auth = () => {
       return;
     }
 
-    await completeProfile({
-      username: profileData.username,
-      age: parseInt(profileData.age),
-      gender: profileData.gender as 'male' | 'female' | 'other',
-      email: profileData.email || undefined,
-    });
+    try {
+      await completeProfile({
+        username: profileData.username,
+        age: parseInt(profileData.age),
+        gender: profileData.gender as 'male' | 'female' | 'other',
+        email: profileData.email || undefined,
+      });
 
-    toast.success('Profile created successfully!');
-    navigate('/');
+      toast.success('Profile created successfully!');
+      navigate('/');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to create profile');
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await login(phone);
+      toast.info('OTP resent to your mobile number');
+      setOtp(['', '', '', '', '', '']);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to resend OTP');
+    }
   };
 
   return (
@@ -198,9 +227,8 @@ const Auth = () => {
 
             <button
               className="w-full text-center text-sm text-primary mt-4"
-              onClick={() => {
-                toast.info('OTP resent to your mobile number');
-              }}
+              onClick={handleResend}
+              disabled={isLoading}
             >
               Didn't receive OTP? Resend
             </button>
